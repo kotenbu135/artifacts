@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>原神ジェビネーター</title>
+<meta name="description" content="原神のキャラを当てるゲーム。知識表はJevが埋めた。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%94%AE%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#0e1220; --bg2:#151b31; --card:#1b2240; --line:#2b3663;
+    --fg:#e8ecfa; --muted:#98a3c8; --gold:#e5c07b; --gold-dim:#8a7440;
+    --accent:#6f8cff; --ok:#5fd39a; --ng:#ef6a6a;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:radial-gradient(1200px 700px at 50% -10%, #1d2647 0%, var(--bg) 60%) fixed, var(--bg);
+    color:var(--fg);
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif;
+    line-height:1.7; -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:640px; margin:0 auto; padding:24px 16px 64px}
+  header{text-align:center; margin-bottom:22px}
+  h1{font-size:1.6rem; margin:0 0 6px; letter-spacing:.06em; color:var(--gold); font-weight:700}
+  .sub{color:var(--muted); font-size:.85rem; margin:0}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+        padding:20px 18px; box-shadow:0 10px 30px rgba(0,0,0,.35)}
+
+  .meter{display:flex; justify-content:space-between; align-items:center;
+         font-size:.78rem; color:var(--muted); margin-bottom:12px; gap:10px}
+  .bar{flex:1; height:4px; background:#232c52; border-radius:99px; overflow:hidden}
+  .bar > i{display:block; height:100%; background:linear-gradient(90deg,var(--accent),var(--gold)); width:0%;
+           transition:width .35s ease}
+
+  .qnum{color:var(--gold-dim); font-size:.8rem; letter-spacing:.14em; margin-bottom:6px}
+  .q{font-size:1.22rem; font-weight:700; margin:0 0 20px; min-height:2.6em; display:flex; align-items:center}
+
+  .answers{display:grid; gap:9px}
+  button{font:inherit; color:inherit; cursor:pointer; border-radius:11px; border:1px solid var(--line);
+         background:#212a4e; padding:13px 16px; text-align:left; transition:.12s; width:100%}
+  button:hover{background:#2a3566; border-color:#48579c}
+  button:active{transform:translateY(1px)}
+  button .k{color:var(--muted); font-size:.75rem; margin-left:8px; font-weight:400}
+  .b-yes{border-color:#2f6b4f} .b-yes:hover{background:#224a38}
+  .b-no{border-color:#6b3434} .b-no:hover{background:#4a2424}
+
+  .row{display:flex; gap:9px} .row > button{flex:1; text-align:center}
+
+  .foot{display:flex; justify-content:space-between; align-items:center; margin-top:14px; gap:10px}
+  .ghost{background:none; border:none; color:var(--muted); font-size:.8rem; padding:6px 2px; width:auto;
+         text-decoration:underline; text-underline-offset:3px}
+  .ghost:hover{background:none; color:var(--fg)}
+
+  .guess{text-align:center; padding:6px 0 4px}
+  .guess .lead{color:var(--muted); font-size:.85rem; margin-bottom:6px}
+  .guess .name{font-size:2rem; font-weight:800; color:var(--gold); letter-spacing:.04em; line-height:1.3}
+  .guess .en{color:var(--muted); font-size:.8rem; margin-bottom:14px}
+  .badges{display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom:18px}
+  .badge{font-size:.75rem; padding:3px 10px; border-radius:99px; border:1px solid var(--line); background:#202950}
+  .conf{color:var(--muted); font-size:.78rem; margin-bottom:16px}
+
+  .result{text-align:center}
+  .result .big{font-size:1.5rem; font-weight:800; margin:6px 0 4px}
+  .result .big.win{color:var(--ok)} .result .big.lose{color:var(--ng)}
+  .result p{color:var(--muted); font-size:.9rem; margin:0 0 18px}
+
+  .top{margin-top:16px; border-top:1px solid var(--line); padding-top:12px}
+  .top h3{font-size:.72rem; color:var(--gold-dim); letter-spacing:.14em; margin:0 0 8px; font-weight:600}
+  .top ol{margin:0; padding:0; list-style:none; display:grid; gap:5px}
+  .top li{display:flex; align-items:center; gap:8px; font-size:.82rem}
+  .top .nm{white-space:nowrap}
+  .top .pb{flex:1; height:3px; background:#232c52; border-radius:99px; overflow:hidden}
+  .top .pb i{display:block; height:100%; background:var(--accent)}
+  .top .pc{color:var(--muted); font-variant-numeric:tabular-nums; min-width:3em; text-align:right}
+
+  .intro p{margin:0 0 14px}
+  .modes{display:grid; gap:8px; margin:16px 0 4px}
+  .mode{border:1px solid var(--line); border-radius:11px; padding:12px 14px; background:#1d2547; cursor:pointer}
+  .mode:hover{border-color:#48579c}
+  .mode.on{border-color:var(--gold); background:#2a2a45}
+  .mode b{display:block; font-size:.95rem}
+  .mode span{color:var(--muted); font-size:.78rem}
+
+  details{margin-top:26px; border:1px solid var(--line); border-radius:var(--radius); background:var(--bg2)}
+  summary{cursor:pointer; padding:14px 18px; font-weight:700; font-size:.92rem; color:var(--gold); list-style:none}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"＋"; float:right; color:var(--muted)}
+  details[open] summary::after{content:"−"}
+  .inner{padding:0 18px 18px; font-size:.87rem; color:#cdd5ee}
+  .inner h4{color:var(--gold-dim); font-size:.75rem; letter-spacing:.12em; margin:18px 0 6px}
+  .inner p{margin:0 0 10px}
+  table{width:100%; border-collapse:collapse; font-size:.8rem; margin:4px 0 12px}
+  th,td{border-bottom:1px solid var(--line); padding:6px 4px; text-align:right}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--muted); font-weight:600}
+  code{background:#0e1220; padding:1px 5px; border-radius:4px; font-size:.85em}
+  a{color:var(--accent)}
+  .note{color:var(--muted); font-size:.78rem; text-align:center; margin-top:22px}
+  @media (max-width:420px){ h1{font-size:1.35rem} .q{font-size:1.1rem} .guess .name{font-size:1.6rem} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>原神ジェビネーター</h1>
+    <p class="sub">キャラを1人思い浮かべてください。118人から当てます。</p>
+  </header>
+
+  <div id="screen"></div>
+
+  <details>
+    <summary>からくり</summary>
+    <div class="inner">
+      <p>Jev は文章を書かないかわりに、<b>1判断を0.1〜0.3秒・$0.00008で大量にこなせる</b>モデルです。
+      このゲームの知識表は、人が事実を書くかわりに Jev に何千回も聞いて埋めました。</p>
+
+      <h4>表の埋め方を2つに分けた理由</h4>
+      <p>元素・武器種・出身・レアリティ・体型には客観的な正解があるので、公式データから機械的に入れています（29問）。
+      髪の色・服装・性格・戦闘での役割・人気といった、<b>正解が存在しない69問</b>だけが Jev の担当です。
+      118人×69問＝8,142判断を<b>3.3秒</b>で埋めました。人が書けば8千ラベルぶんの作業です。</p>
+
+      <h4>なぜ分けたか（測った結果）</h4>
+      <p>Jev に元素や武器種そのものを聞くと、実装時期でくっきり割れました。</p>
+      <table>
+        <tr><th>Jevの正答率</th><th>元素</th><th>武器</th><th>出身</th><th>星5</th></tr>
+        <tr><td>2024年9月までの87人</td><td>80.5%</td><td>69.0%</td><td>83.9%</td><td>83.9%</td></tr>
+        <tr><td>2024年10月以降の31人</td><td>9.7%</td><td>32.3%</td><td>32.3%</td><td>41.9%</td></tr>
+        <tr><td>でたらめに答えた場合</td><td>14%</td><td>20%</td><td>12%</td><td>57%</td></tr>
+      </table>
+      <p><b>Jev の知識は2024年秋で止まっています。</b>新しいキャラでは、でたらめより低い。
+      しかも「知らない」とは言わず、名前の字面に引っぱられて自信を持って間違えます。
+      だから正解が手に入る事実は、Jev に聞かずデータベースから入れました。</p>
+
+      <h4>どれくらい当たるか</h4>
+      <p>全118人を1人ずつ出題した結果です。</p>
+      <table>
+        <tr><th>表</th><th>1回目の推測で正解</th><th>平均質問数</th></tr>
+        <tr><td>公式データ＋Jev</td><td>118/118</td><td>7.1</td></tr>
+        <tr><td>98問ぜんぶJev</td><td>80/118</td><td>14.2</td></tr>
+      </table>
+      <p>上の「Jevに全部任せた表で遊ぶ」モードで、壊れかたを実際に確かめられます。</p>
+
+      <h4>このページについて</h4>
+      <p>このページは完全に静的で、遊んでいる間に Jev を呼びません。API キーも要りません。
+      Jev の仕事は表を作る時点で終わっていて、ブラウザがやるのはベイズ更新と
+      期待情報利得の計算だけです（Jev は算術が苦手なので、もともとコード側の仕事です）。</p>
+      <p>キャラのデータ出典は <a href="https://gi.yatta.moe/" target="_blank" rel="noopener">Project Amber</a>。
+      日本語名も公式のものをそのまま使っています。
+      作った過程と評価コードは <a href="https://github.com/kotenbu135/artifacts" target="_blank" rel="noopener">このリポジトリ</a>の
+      <code>genshin-jevinator/pipeline/</code> にあります。</p>
+    </div>
+  </details>
+
+  <p class="note">原神は HoYoverse の作品です。これは個人が作った非公式のファンメイドです。</p>
+</div>
+
+<script src="data.js"></script>
+<script>
+(function(){
+  "use strict";
+  var D = window.JEVINATOR_DATA;
+  var N = D.chars.length, Q = D.qids.length;
+  var CLIP_LO = 0.04, CLIP_HI = 0.96;
+  var ELEM_COLOR = {"炎":"#ff8a5c","水":"#4fb0f7","風":"#57d6cd","雷":"#bb86ef",
+                    "草":"#86d488","氷":"#86dcff","岩":"#e5b74a"};
+
+  // 表は 0〜100 の整数で入っているので、使うときに確率へ戻して端を丸める
+  function buildP(which){
+    var src = D[which], P = [];
+    for (var i=0;i<N;i++){
+      var row = new Float64Array(Q);
+      for (var j=0;j<Q;j++){
+        var v = src[i][j] / 100;
+        row[j] = v < CLIP_LO ? CLIP_LO : (v > CLIP_HI ? CLIP_HI : v);
+      }
+      P.push(row);
+    }
+    return P;
+  }
+
+  var ANSWERS = [
+    {key:"yes",  label:"はい",       dir:1, s:1.0,  cls:"b-yes"},
+    {key:"pyes", label:"たぶんそう", dir:1, s:0.55, cls:""},
+    {key:"unk",  label:"わからない", dir:1, s:0.0,  cls:""},
+    {key:"pno",  label:"たぶん違う", dir:0, s:0.55, cls:""},
+    {key:"no",   label:"いいえ",     dir:0, s:1.0,  cls:"b-no"}
+  ];
+
+  var S = null; // ゲーム状態
+
+  function newGame(which){
+    S = {
+      P: buildP(which), which: which,
+      belief: new Float64Array(N).fill(1/N),
+      asked: new Uint8Array(Q),
+      rejected: new Uint8Array(N),
+      turns: 0, qid: -1, mode: "ask", history: [], guessed: []
+    };
+    nextQuestion();
+  }
+
+  function snapshot(){
+    S.history.push({belief: S.belief.slice(), asked: S.asked.slice(),
+                    rejected: S.rejected.slice(), turns: S.turns, qid: S.qid,
+                    mode: S.mode, guessed: S.guessed.slice()});
+    if (S.history.length > 40) S.history.shift();
+  }
+  function undo(){
+    var h = S.history.pop();
+    if (!h) return;
+    S.belief = h.belief; S.asked = h.asked; S.rejected = h.rejected;
+    S.turns = h.turns; S.qid = h.qid; S.mode = h.mode; S.guessed = h.guessed;
+    render();
+  }
+
+  function normalize(){
+    var t = 0, i;
+    for (i=0;i<N;i++) t += S.belief[i];
+    if (t <= 0){ S.belief.fill(1/N); return; }
+    for (i=0;i<N;i++) S.belief[i] /= t;
+  }
+
+  function entropy(b){
+    var h = 0;
+    for (var i=0;i<b.length;i++){ var x = b[i]; if (x > 0) h -= x * Math.log2(x); }
+    return h;
+  }
+
+  function nextQuestion(){
+    var b = S.belief, H0 = entropy(b), best = -1, bestGain = -1, i, j;
+    var by = new Float64Array(N), bn = new Float64Array(N);
+    for (j=0;j<Q;j++){
+      if (S.asked[j]) continue;
+      var py = 0;
+      for (i=0;i<N;i++) py += b[i] * S.P[i][j];
+      if (py < 1e-6 || py > 1 - 1e-6) continue;
+      for (i=0;i<N;i++){ by[i] = b[i]*S.P[i][j]/py; bn[i] = b[i]*(1-S.P[i][j])/(1-py); }
+      var gain = H0 - (py*entropy(by) + (1-py)*entropy(bn));
+      if (gain > bestGain){ bestGain = gain; best = j; }
+    }
+    S.qid = best;
+    S.mode = (best < 0 || shouldGuess()) ? "guess" : "ask";
+    if (S.mode === "guess" && top(1).length === 0) S.mode = "lose";
+  }
+
+  function answer(a){
+    snapshot();
+    var j = S.qid, i;
+    for (i=0;i<N;i++){
+      var p = S.P[i][j];
+      var lik = (a.dir === 1 ? p : 1 - p);
+      S.belief[i] *= a.s * lik + (1 - a.s) * 0.5;
+    }
+    normalize();
+    S.asked[j] = 1; S.turns++;
+    nextQuestion();
+    render();
+  }
+
+  function top(n){
+    var idx = [], i;
+    for (i=0;i<N;i++) if (!S.rejected[i]) idx.push(i);
+    idx.sort(function(x,y){ return S.belief[y] - S.belief[x]; });
+    return idx.slice(0, n).map(function(i){ return {i:i, p:S.belief[i]}; });
+  }
+
+  function shouldGuess(){
+    var t = top(1);
+    return t.length > 0 && (t[0].p >= 0.55 || S.turns >= 20);
+  }
+
+  function acceptGuess(){
+    S.mode = "win"; render();
+  }
+  function rejectGuess(){
+    snapshot();
+    var t = top(1);
+    if (!t.length){ S.mode = "lose"; render(); return; }
+    S.rejected[t[0].i] = 1; S.guessed.push(t[0].i);
+    S.belief[t[0].i] = 0; normalize();
+    if (S.guessed.length >= 3){ S.mode = "lose"; }
+    else { nextQuestion(); }
+    render();
+  }
+
+  // ---- 描画 ----
+  var el = document.getElementById("screen");
+  function h(html){ el.innerHTML = html; }
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){
+    return ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"})[c]; }); }
+
+  function alive(){ var n=0; for (var i=0;i<N;i++) if (!S.rejected[i] && S.belief[i] > 1e-4) n++; return n; }
+
+  function topList(){
+    if (S.turns === 0) return "";   // 1問も答える前の「上位」はただの雑音
+    var t = top(3);
+    if (!t.length) return "";
+    return '<div class="top"><h3>いまの上位</h3><ol>' + t.map(function(x){
+      return '<li><span class="nm">' + esc(D.chars[x.i]) + '</span>' +
+             '<span class="pb"><i style="width:' + Math.round(x.p*100) + '%"></i></span>' +
+             '<span class="pc">' + Math.round(x.p*100) + '%</span></li>';
+    }).join("") + "</ol></div>";
+  }
+
+  function badges(i){
+    var m = D.meta[i], c = ELEM_COLOR[m[0]] || "#888";
+    return '<div class="badges">' +
+      '<span class="badge" style="border-color:' + c + ';color:' + c + '">' + esc(m[0]) + '</span>' +
+      ['<span class="badge">' + esc(m[1]) + '</span>',
+       '<span class="badge">' + esc(m[2]) + '</span>',
+       '<span class="badge">★' + m[4] + '</span>',
+       '<span class="badge">' + esc(m[5]) + ' 実装</span>'].join("") + '</div>';
+  }
+
+  function startScreen(){
+    h('<div class="card intro">' +
+      '<p>原神のキャラを1人、頭の中で決めてください。質問に答えていくと当てにいきます。</p>' +
+      '<p style="color:var(--muted);font-size:.85rem">知識表は Jev（判断専用の小さなモデル）が埋めました。' +
+      '遊んでいる間はネットワークを使いません。</p>' +
+      '<div class="modes">' +
+        '<div class="mode on" data-m="hybrid"><b>ふつうに遊ぶ</b>' +
+          '<span>公式データ＋Jev の表。118人ぜんぶ当てられた表です。</span></div>' +
+        '<div class="mode" data-m="jevonly"><b>Jevに全部任せた表で遊ぶ</b>' +
+          '<span>元素も武器も Jev の記憶頼り。新しいキャラで壊れます。</span></div>' +
+      '</div>' +
+      '<div class="row" style="margin-top:14px"><button id="go" class="b-yes" style="text-align:center;font-weight:700">はじめる</button></div>' +
+      '</div>');
+    var picked = "hybrid";
+    Array.prototype.forEach.call(el.querySelectorAll(".mode"), function(m){
+      m.onclick = function(){
+        Array.prototype.forEach.call(el.querySelectorAll(".mode"), function(x){ x.classList.remove("on"); });
+        m.classList.add("on"); picked = m.dataset.m;
+      };
+    });
+    el.querySelector("#go").onclick = function(){ newGame(picked); render(); };
+  }
+
+  function render(){
+    if (!S){ startScreen(); return; }
+    var pct = Math.min(100, Math.round(100 * (1 - alive()/N)));
+    var meter = '<div class="meter"><span>質問 ' + S.turns + '</span>' +
+                '<span class="bar"><i style="width:' + pct + '%"></i></span>' +
+                '<span>候補 ' + alive() + ' 人</span></div>';
+
+    if (S.mode === "ask"){
+      h('<div class="card">' + meter +
+        '<div class="qnum">Q' + (S.turns + 1) + '</div>' +
+        '<p class="q">' + esc(D.qtext[S.qid]) + '？</p>' +
+        '<div class="answers" id="ans"></div>' +
+        topList() +
+        '<div class="foot"><button class="ghost" id="undo">1つ戻る</button>' +
+        '<button class="ghost" id="reset">最初から</button></div></div>');
+      var box = el.querySelector("#ans");
+      ANSWERS.forEach(function(a){
+        var b = document.createElement("button");
+        b.className = a.cls; b.textContent = a.label;
+        b.onclick = function(){ answer(a); };
+        box.appendChild(b);
+      });
+    } else if (S.mode === "guess"){
+      var t = top(1)[0];
+      h('<div class="card">' + meter +
+        '<div class="guess">' +
+        '<p class="lead">' + (S.guessed.length ? "では、こちらは？" : "分かりました。") + '</p>' +
+        '<div class="name">' + esc(D.chars[t.i]) + '</div>' +
+        '<div class="en">' + esc(D.meta[t.i][6]) + '</div>' +
+        badges(t.i) +
+        '<p class="conf">確信 ' + Math.round(t.p*100) + '%' +
+        (S.guessed.length ? '・' + S.guessed.length + '回外しました' : '') + '</p>' +
+        '</div>' +
+        '<div class="row"><button class="b-yes" id="yes">当たり</button>' +
+        '<button class="b-no" id="no">ちがう</button></div>' +
+        '<div class="foot"><button class="ghost" id="undo">1つ戻る</button>' +
+        '<button class="ghost" id="reset">最初から</button></div></div>');
+      el.querySelector("#yes").onclick = acceptGuess;
+      el.querySelector("#no").onclick = rejectGuess;
+    } else if (S.mode === "win"){
+      h('<div class="card result">' +
+        '<div class="big win">当たりました</div>' +
+        '<p>質問 ' + S.turns + ' 回' + (S.guessed.length ? '、推測 ' + (S.guessed.length+1) + ' 回目' : '、一発で') + '。</p>' +
+        '<div class="row"><button id="again" style="text-align:center">もう一度</button></div></div>');
+      el.querySelector("#again").onclick = function(){ S = null; render(); };
+    } else {
+      var miss = S.guessed.map(function(i){ return D.chars[i]; }).join("、");
+      h('<div class="card result">' +
+        '<div class="big lose">降参です</div>' +
+        '<p>' + (miss ? esc(miss) + ' と思ったのですが…' : '候補が尽きました。') +
+        (S.which === "jevonly" ? '<br>（Jevに全部任せた表なので、無理もありません）' : '') + '</p>' +
+        '<div class="row"><button id="again" style="text-align:center">もう一度</button></div></div>');
+      el.querySelector("#again").onclick = function(){ S = null; render(); };
+    }
+    var u = el.querySelector("#undo"), r = el.querySelector("#reset");
+    if (u) u.onclick = undo;
+    if (r) r.onclick = function(){ S = null; render(); };
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
