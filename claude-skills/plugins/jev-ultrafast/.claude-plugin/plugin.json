@@ -1,0 +1,10 @@
+{
+  "name": "jev-ultrafast",
+  "description": "browser-use × TypeSafe Jev でヘッドレス Chrome を自然言語で操作する。初回に自分でセットアップする",
+  "version": "1.0.0",
+  "author": {
+    "name": "kotenbu135"
+  },
+  "homepage": "https://github.com/browser-use/jev-ultrafast",
+  "license": "MIT"
+}

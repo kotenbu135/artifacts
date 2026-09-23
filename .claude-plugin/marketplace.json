@@ -1,0 +1,45 @@
+{
+  "name": "kotenbu-skills",
+  "description": "どのリポジトリ・クラウド環境・WSL でも使いたいスキルの詰め合わせ",
+  "owner": {
+    "name": "kotenbu135"
+  },
+  "plugins": [
+    {
+      "name": "security-audit",
+      "description": "Cloudflare のセキュリティ監査スキル。脆弱性レビュー・監査・ペンテスト",
+      "source": {
+        "source": "github",
+        "repo": "cloudflare/security-audit-skill"
+      },
+      "strict": false,
+      "skills": ["./skills/security-audit"],
+      "homepage": "https://github.com/cloudflare/security-audit-skill",
+      "license": "MIT"
+    },
+    {
+      "name": "natural-japanese",
+      "description": "仕事の日本語文書を読みやすく書く・直すスキル。AI臭さの除去込み",
+      "source": {
+        "source": "github",
+        "repo": "coji/natural-japanese"
+      },
+      "homepage": "https://github.com/coji/natural-japanese"
+    },
+    {
+      "name": "taste-skill",
+      "description": "フロントエンドのデザインセンス系スキル集（minimalist / brutalist / soft / redesign ほか）",
+      "source": {
+        "source": "github",
+        "repo": "Leonxlnx/taste-skill"
+      },
+      "homepage": "https://github.com/Leonxlnx/taste-skill"
+    },
+    {
+      "name": "jev-ultrafast",
+      "description": "browser-use × TypeSafe Jev でヘッドレス Chrome を自然言語で操作する。初回に自分でセットアップする",
+      "source": "./claude-skills/plugins/jev-ultrafast",
+      "homepage": "https://github.com/browser-use/jev-ultrafast"
+    }
+  ]
+}
